@@ -218,7 +218,7 @@ const[eN,setEN]=useState("");
 const[eA,setEA]=useState("");
 const[eD,setED]=useState("");
 const[gIn,setGIn]=useState("");
-const[swY,setSwY]=useState(null);
+
 
 useEffect(()=>{const i=setInterval(()=>setClock(ftF()),30000);return()=>clearInterval(i)},[]);
 
@@ -263,11 +263,10 @@ function submitNote(){if(noteText.trim())setNotes(p=>[{date:dateStr,text:noteTex
 function resetDay(){setIdx(0);setDone({});setBiz2(null);setBizTasks([]);setBizIdx(0);setBizSIdx(0);setGroC({});setScr("task");setEToday(0);setMoodAM(null);setMoodPM(null);setNoteText("");setHist([])}
 function saveBill(){setBills(p=>p.map(b=>b.id===eBill.id?{...b,name:eN||b.name,amount:parseFloat(eA)||b.amount,dueDay:parseInt(eD)||b.dueDay}:b));setScr("bills")}
 
-function tsS(ev){setSwY(ev.touches[0].clientY)}
-function tsE(ev,fn){if(swY!==null&&swY-ev.changedTouches[0].clientY>60&&fn)fn();setSwY(null)}
+
 
 // Styles
-const C={ctn:{minHeight:"100vh",height:"100vh",background:"#0f0f1a",color:"#e2e8f0",fontFamily:"'JetBrains Mono',monospace",display:"flex",flexDirection:"column",overflow:"auto"},
+const C={ctn:{minHeight:"100vh",height:"100vh",background:"#0f0f1a",color:"#e2e8f0",fontFamily:"'JetBrains Mono',monospace",display:"flex",flexDirection:"column",overflow:"auto",overscrollBehavior:"none"},
 fc:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"},
 lbl:{fontSize:"10px",letterSpacing:"3px",color:"#e2c044",textTransform:"uppercase",marginBottom:"4px"},
 btn:(bg)=>({padding:"14px",background:bg||"linear-gradient(135deg,#e2c044,#f59e0b)",border:"none",borderRadius:"12px",color:"#0f0f1a",fontSize:"14px",fontWeight:"700",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"}),
@@ -298,16 +297,16 @@ e("button",{onClick:()=>{setPanicT(PANICS[Math.floor(Math.random()*PANICS.length
 
 // Step screen
 function StepScr(props){const{steps,si,onNext,onSkip,color,label}=props;const step=steps[si];const pct=Math.round(si/steps.length*100);
-return e("div",{style:C.ctn,onTouchStart:tsS,onTouchEnd:ev=>tsE(ev,onNext)},
+return e("div",{style:C.ctn},
 e("div",{style:{padding:"16px 20px 10px"}},
 e("div",{style:{fontSize:"11px",letterSpacing:"2px",color}},label+" — STEP "+(si+1)+" OF "+steps.length),
 e("div",{style:{marginTop:"6px",height:"4px",background:"#2a2a4a",borderRadius:"2px",overflow:"hidden"}},
 e("div",{style:{width:pct+"%",height:"100%",background:color,borderRadius:"2px",transition:"width 0.3s"}}))),
-e("div",{style:{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:"30px 28px",textAlign:"center"}},
+e("div",{style:{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:"30px 28px",textAlign:"center",minHeight:0}},
 e("div",{style:{fontSize:"11px",letterSpacing:"3px",color,marginBottom:"14px"}},"DO THIS NOW"),
 e("div",{style:{fontSize:"22px",fontWeight:"800",color:"#fff",lineHeight:"1.3",maxWidth:"340px"}},step),
 si<steps.length-1?e("div",{style:{fontSize:"13px",color:"#64748b",marginTop:"14px"}},"Then I'll tell you the next step."):e("div",{style:{fontSize:"13px",color:"#4ade80",marginTop:"14px"}},"Last step — you're done after this.")),
-e("div",{style:{padding:"0 20px 28px"}},
+e("div",{style:{padding:"0 20px 28px",flexShrink:0}},
 e("button",{onClick:onNext,style:{...C.btn("linear-gradient(135deg,"+color+","+color+"dd)"),marginBottom:"8px"}},si<steps.length-1?"DONE — NEXT STEP →":"DONE ✓"),
 onSkip&&e("button",{onClick:onSkip,style:C.sec},"Skip this task →"))
 )}
@@ -468,7 +467,7 @@ if(scr==="csteps")return e(StepScr,{steps:stepList,si:stepIdx,onNext:stepNext,on
 if(scr==="otsteps")return e(StepScr,{steps:stepList,si:stepIdx,onNext:stepNext,onSkip:()=>{setOtDone(p=>({...p,[stepTId]:true}));setScr("task");advance(stepTId)},color:"#f472b6",label:"SETUP TASK"});
 
 // MAIN TASK
-return e("div",{style:C.ctn,onTouchStart:tsS,onTouchEnd:ev=>tsE(ev,markDone)},
+return e("div",{style:C.ctn},
 e("div",{style:{padding:"14px 20px 4px",display:"flex",justifyContent:"space-between",alignItems:"center"}},
 e("div",null,
 e("div",{style:{fontSize:"11px",letterSpacing:"2px",color:"#64748b"}},dayName.toUpperCase()),
@@ -482,13 +481,13 @@ e("div",{style:{display:"flex",justifyContent:"space-between",marginTop:"3px"}},
 e("div",{style:{padding:"0 20px 4px"}},
 e("button",{onClick:()=>setWeather(weather==="good"?"bad":"good"),style:{width:"100%",padding:"8px",background:weather==="good"?"#1e3a2f":"#3a1e2f",border:"1px solid "+(weather==="good"?"rgba(74,222,128,0.3)":"rgba(248,113,113,0.3)"),borderRadius:"8px",color:weather==="good"?"#4ade80":"#f87171",fontSize:"11px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}},
 weather==="good"?"☀️ Golf ON"+(wTemp?" — "+wTemp+"°F":""):"🌧️ Spark day"+(wTemp?" — "+wTemp+"°F":""))),
-e("div",{style:{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:"20px 28px",textAlign:"center"}},
+e("div",{style:{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:"20px 28px",textAlign:"center",minHeight:0}},
 e("div",{style:{fontSize:"11px",letterSpacing:"3px",color:accent,textTransform:"uppercase",marginBottom:"10px"}},task.time),
 e("div",{style:{fontSize:"28px",fontWeight:"800",color:"#fff",lineHeight:"1.2",marginBottom:"12px"}},task.label),
 e("div",{style:{fontSize:"14px",color:"#94a3b8",lineHeight:"1.5",maxWidth:"300px"}},task.sub),
 task.type==="onetime"&&e("div",{style:{fontSize:"11px",color:"#f472b6",marginTop:"6px"}},"⚡ One-time — I'll walk you through it"),
 task.type==="chore"&&e("div",{style:{fontSize:"11px",color:"#fb923c",marginTop:"6px"}},"I'll walk you through each step")),
-e("div",{style:{padding:"0 20px 20px"}},
+e("div",{style:{padding:"0 20px 20px",flexShrink:0}},
 e("button",{onClick:markDone,style:{...C.btn("linear-gradient(135deg,"+accent+","+accent+"dd)"),marginBottom:"8px"}},(task.type==="chore"||task.type==="onetime")?"START →":"DONE ✓"),
 e("div",{style:{display:"flex",gap:"8px"}},
 e("button",{onClick:skip,style:C.sec},"Skip →"),
