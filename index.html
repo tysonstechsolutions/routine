@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0f1a">
+<title>Routine</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUm91dGluZSIsInNob3J0X25hbWUiOiJSb3V0aW5lIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZjBmMWEiLCJ0aGVtZV9jb2xvciI6IiMwZjBmMWEifQ==">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body,#root{height:100%;width:100%;overflow:hidden}
+body{background:#0f0f1a;font-family:'JetBrains Mono',monospace;color:#e2e8f0;-webkit-font-smoothing:antialiased}
+input,textarea,button{font-family:inherit}
+::-webkit-scrollbar{width:0;height:0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const e=React.createElement,{useState,useEffect,useCallback}=React;
+
+const MEALS=[
+{lunch:"Chick-fil-A or Wendy's — grab between deliveries",dinner:"Baked chicken thighs + mac & cheese + cornbread"},
+{lunch:"Leftover chicken + mac & cheese",dinner:"Spaghetti with meat sauce + garlic bread"},
+{lunch:"Pizza rolls + chips",dinner:"Tacos — ground beef, shells, cheese, sour cream, salsa"},
+{lunch:"Leftover tacos or taco bowl with rice",dinner:"Pork chops + mashed potatoes + gravy"},
+{lunch:"Ramen noodles + hot dogs",dinner:"Hamburger Helper + buttered noodles"},
+{lunch:"Leftover Hamburger Helper",dinner:"Frozen pizza — easy night"},
+{lunch:"Grab something while you're out",dinner:"Steak + baked potato w/ butter & sour cream + rolls"},
+];
+
+const GROCERY=[
+{category:"🥩 Meat",items:[{name:"Chicken thighs (family pack)",price:8},{name:"Ground beef 2 lbs",price:9},{name:"Pork chops 4 pack",price:7},{name:"Hot dogs 1 pack",price:3},{name:"Steak 2 ribeyes or sirloin",price:16}]},
+{category:"🥛 Dairy",items:[{name:"Shredded cheese 2 bags",price:5},{name:"Sour cream",price:2},{name:"Butter",price:4},{name:"Milk gallon",price:3}]},
+{category:"🍞 Bread & Pasta",items:[{name:"Garlic bread frozen",price:3},{name:"Cornbread mix Jiffy",price:1},{name:"Spaghetti noodles",price:1},{name:"Egg noodles",price:2},{name:"Taco shells",price:2},{name:"Hamburger Helper 1 box",price:2},{name:"Dinner rolls",price:3},{name:"Ramen 6 pack",price:2}]},
+{category:"🧀 Frozen & Snacks",items:[{name:"Frozen pizza 2-3",price:10},{name:"Pizza rolls big bag",price:6},{name:"Mac & cheese family size",price:5},{name:"Chips 1-2 bags",price:5}]},
+{category:"🥔 Potatoes & Sides",items:[{name:"Potatoes 5 lb bag",price:4},{name:"Rice bag or instant",price:3},{name:"Gravy mix or jar",price:2}]},
+{category:"🥫 Pantry",items:[{name:"Spaghetti sauce jar",price:3},{name:"Salsa",price:3},{name:"Taco seasoning 2 packs",price:2}]},
+{category:"🧴 Basics (if low)",items:[{name:"Paper towels",price:6},{name:"Toilet paper",price:8},{name:"Dish soap",price:3},{name:"Trash bags",price:5},{name:"Laundry detergent",price:8}]},
+];
+
+const DEF_BILLS=[
+{id:"b1",name:"Credit Card #1",amount:50,dueDay:15},
+{id:"b2",name:"Credit Card #2",amount:35,dueDay:20},
+{id:"b3",name:"Internet",amount:60,dueDay:1},
+{id:"b4",name:"Phone",amount:80,dueDay:10},
+{id:"b5",name:"Insurance",amount:120,dueDay:5},
+{id:"b6",name:"Rent",amount:600,dueDay:1},
+];
+
+const DEF_OT=[
+{id:"ap-cc1",label:"Set up auto pay — Credit Card #1",steps:["Open your phone browser","Go to your credit card company's website","Log in to your account","Tap 'Payments' or 'Pay Bill'","Look for 'Auto Pay' or 'Automatic Payments'","Turn it ON — set to minimum payment","Confirm your bank account is linked","Hit Save or Confirm"]},
+{id:"ap-cc2",label:"Set up auto pay — Credit Card #2",steps:["Open your phone browser","Go to your second credit card's website","Log in to your account","Tap 'Payments' or 'Pay Bill'","Look for 'Auto Pay' or 'Automatic Payments'","Turn it ON — set to minimum payment","Confirm your bank account is linked","Hit Save or Confirm"]},
+{id:"ap-internet",label:"Set up auto pay — Internet",steps:["Open your phone browser","Go to your internet provider's website","Log in to your account","Go to 'Billing' or 'Payment Settings'","Find 'Auto Pay' or 'Paperless & Autopay'","Turn it ON","Enter your debit card or bank info if needed","Hit Save or Confirm"]},
+{id:"ap-phone",label:"Set up auto pay — Phone bill",steps:["Open your phone carrier's app (or website)","Log in to your account","Go to 'Billing' or 'Payment'","Find 'Auto Pay'","Turn it ON","Confirm your payment method","Hit Save or Confirm"]},
+{id:"ap-insurance",label:"Set up auto pay — Insurance",steps:["Open your phone browser","Go to your insurance company's website","Log in to your account","Go to 'Billing' or 'Payments'","Find 'Auto Pay' or 'Automatic Payments'","Turn it ON","Confirm your payment method","Hit Save or Confirm"]},
+];
+
+const CHORES=[
+{label:"Start a load of laundry",steps:["Go to your laundry area","Grab dirty clothes from the hamper or floor","Put them in the washing machine","Add detergent — one cap full","Close the lid, set to Normal, press Start"]},
+{label:"Fold & put away laundry",steps:["Go to the dryer","Pull everything out onto your bed","Fold shirts: lay flat, fold in half, fold in half again","Fold pants: lay flat, fold in half lengthwise, fold in thirds","Match socks together, ball them up","Put folded clothes in your dresser or closet NOW"]},
+{label:"Do the dishes",steps:["Put on music or a YouTube video on your phone","Scrape food off all plates into the trash","Fill the sink with hot soapy water","Wash plates first, then cups, then silverware, then pots","Rinse everything and put it in the drying rack","Wipe down the sink when you're done"]},
+{label:"Clean the kitchen counters & stove",steps:["Clear everything off the counters","Spray counters with cleaner or wet a rag","Wipe all counters left to right, front to back","Remove the stove grates or burner covers","Spray the stovetop and wipe it down","Put the grates back","Put only what BELONGS on the counter back"]},
+{label:"Clean the bathroom",steps:["Spray the toilet with cleaner — bowl, seat, base","Spray the sink and counter","Wipe the sink and counter with paper towels","Scrub the toilet bowl with the brush","Wipe the toilet seat, lid, and base","Wipe the mirror with glass cleaner or a wet paper towel","Throw away any trash on the floor/counter"]},
+{label:"Vacuum / sweep floors",steps:["Pick up anything on the floor first — shoes, clothes, trash","Grab the vacuum (or broom)","Start in the far corner of the room","Work your way toward the door","Do the kitchen and bathroom floors too","Empty the vacuum / sweep the pile into the dustpan"]},
+{label:"Take out all trash",steps:["Grab the kitchen trash bag, tie it closed","Check the bathroom trash — if more than half full, grab it","Check your bedroom for any trash","Walk all bags to the outside bin","Put new trash bags in all the cans you emptied"]},
+{label:"10-min room pickup",steps:["Set a timer on your phone for 10 minutes","Pick up all clothes — dirty ones go in the hamper","Throw away any trash, receipts, wrappers","Put dishes in the sink","Stack loose papers together in one spot","Straighten up anything that looks messy","Stop when the timer goes off — done is done"]},
+{label:"Wipe down tables & surfaces",steps:["Get a wet rag or paper towel with cleaner","Wipe the dining table / eating area","Wipe the coffee table / side tables","Wipe your desk if you have one","Wipe the TV stand or entertainment center","Toss the rag in the laundry or trash the paper towels"]},
+{label:"Clean out fridge",steps:["Open the fridge","Pull out anything that looks old, smells bad, or is expired","Check dates on everything — if past the date, throw it out","Wipe down any sticky shelves with a wet rag","Put the remaining stuff back neatly","Close the fridge. Done."]},
+];
+
+const BIZ={
+"Pinpoint Parking":[
+{title:"Post a job photo on Facebook",steps:["Open your phone's camera roll","Find the most recent sealcoating or striping photo","Open the Facebook app","Go to the Pinpoint Parking page","Tap 'Create Post'","Upload that photo","Type exactly: 'Another lot looking fresh 🔥 Sealcoating & line striping in Southern IL. Free quotes — message us or call [your number]'","Tap Post"]},
+{title:"Find 5 parking lots on Google Maps",steps:["Open Google Maps on your phone","Search 'shopping centers near Mount Vernon IL'","Look at the satellite view of the first result","Screenshot the parking lot","Write down the business name and address in your notes app","Do this for the next 4 results","You now have 5 lots to quote"]},
+{title:"Text a past lead",steps:["Open your text messages","Scroll back and find someone you quoted before who didn't book","Text them exactly: 'Hey, this is Tyson with Pinpoint Parking. Spring season is coming up — still need that lot done? I can get you on the schedule. Let me know.'","That's it. Send it."]},
+{title:"Write an estimate",steps:["Open Google Docs or your notes app","Write the business name and address at the top","Estimate the square footage from your photos or Google Maps","Multiply sq ft × your price per sq ft for sealcoating","Add line striping if the lot needs it","Write the total at the bottom","Save it"]},
+{title:"Post in a local Facebook group",steps:["Open the Facebook app","Search for 'Mount Vernon IL Community' or 'Southern Illinois Buy Sell Trade'","Join the group if you haven't already","Tap 'Write something'","Type: 'Spring is coming — need your parking lot sealcoated or lines repainted? Local veteran-owned business, free estimates. DM me or call [your number] 🇺🇸'","Add a before/after photo if you have one","Tap Post"]},
+{title:"Reply to all messages",steps:["Open Facebook Messenger","Check the Pinpoint Parking page inbox","Reply to any unread messages","Open your email and check for any business inquiries","Reply to those too","Open your texts — reply to any business texts","Done — all caught up"]},
+],
+"Tyson's Tech Solutions":[
+{title:"Email 3 contractors about AI chatbots",steps:["Open Google Maps","Search 'plumber near Mount Vernon IL'","Click the first result","Find their email on their website","Open Gmail","Compose a new email","Subject: 'Quick question about your website'","Body: 'Hey [name], I noticed your website doesn't have a chat feature. I build AI chatbots for contractors that answer customer questions and book jobs 24/7. Would you be open to a quick 5-min demo? — Tyson, Tyson's Tech Solutions'","Send it","Repeat for 2 more contractors (HVAC company and electrician)"]},
+{title:"Build a demo chatbot",steps:["Open your computer","Open your chatbot builder tool","Create a new chatbot called 'Plumber Demo Bot'","Add Q&A: 'What services do you offer?' → 'We handle all plumbing — leaks, clogs, water heaters, sewer lines.'","Add Q&A: 'What are your hours?' → 'Mon-Fri 7AM-6PM, emergency service 24/7.'","Add Q&A: 'How much does it cost?' → 'Call or text us for a free quote.'","Test it — send each question and check the responses","Save it"]},
+{title:"Record a 60-second screen demo",steps:["Open the demo chatbot you built","Open your phone's screen recorder","Start recording","Say out loud: 'This is what an AI chatbot looks like on a contractor's website'","Type a question into the chatbot and show it responding","Do this for 2-3 questions","Stop recording","Save the video to your camera roll"]},
+{title:"Post in a contractor Facebook group",steps:["Open Facebook","Search for 'Contractor Marketing Tips' or 'HVAC Technicians' or 'Plumbers Group'","Join one you haven't joined yet","Write: 'I built an AI chatbot for a contractor friend — it books jobs while he sleeps. Anyone interested in trying one? Free demo, no commitment. DM me.'","Tap Post"]},
+{title:"Follow up with leads",steps:["Open your email — search 'Tyson's Tech Solutions'","Find anyone you emailed in the last 2 weeks who didn't respond","Reply: 'Hey, just following up. Happy to do a quick demo whenever works. No pressure.'","Do this for every unanswered email","Check Facebook DMs for the business page too"]},
+{title:"Update the website",steps:["Open your browser","Go to tysonstechsolutions.com","Read through the homepage","Fix any typos","Make sure your phone number and email (admin@tysonstechsolutions.com) are correct","Test the contact form — send yourself a test message","Save any changes"]},
+],
+"Myxer Dating":[
+{title:"Confirm the next venue",steps:["Open your Myxer event calendar","Find the next event without a confirmed venue","Look up the venue's phone number","Call them NOW","Say: 'Hi, I'm Tyson with Myxer Dating. I'd like to book your space for a speed dating event on [date]. We'd need the space from [time] to [time] for about [number] people. What's your rental fee?'","Write down what they say","If it works, confirm the booking","If not, call the next venue on your list"]},
+{title:"Post event promo on social media",steps:["Open the Myxer Dating Instagram or Facebook page","Tap Create Post","Use the event flyer (or make a quick one in Canva)","Write: '💕 [City] Speed Dating Event — [Date] at [Venue]! Meet real people, face to face. Limited spots. Register: [link]'","Add hashtags: #speeddating #[city]singles #myxerdating","Tap Post","Share it to your personal story too"]},
+{title:"Design a flyer",steps:["Open Canva on your phone or computer","Search for 'speed dating flyer' template","Pick one that looks good","Change the title to: 'Myxer Speed Dating — [City]'","Change the date, time, and venue","Add 'Register at [your link]'","Download it as a PNG","Save to your camera roll"]},
+{title:"DM 5 people about the next event",steps:["Open Instagram","Search for people in the next event city — use location tags or local hashtags","Find 5 profiles that look single and social","DM each one: 'Hey! I'm hosting a speed dating event in [city] on [date]. It's chill, fun, and a great way to meet new people. Interested? Here's the link: [link]'","Send all 5. Don't wait for replies."]},
+{title:"Set up registration page",steps:["Open your website builder or Eventbrite","Create a new event","Title: 'Myxer Speed Dating — [City, State]'","Fill in date, time, location","Description: 'Meet 10-15 singles face to face in quick 5-minute rounds. Matches revealed after. Ages 21-40. $20/ticket.'","Set the ticket price","Publish it","Copy the link for promo posts"]},
+{title:"Message confirmed attendees",steps:["Open your registration platform","View the list of people signed up for the next event","Send each person: 'Hey [name]! Confirming you're coming to Myxer Speed Dating on [date] at [venue]. Doors open at [time]. See you there! — Tyson'","Follow up with anyone who hasn't responded: 'Still coming on [date]? Let me know!'"]},
+],
+"WONPO":[
+{title:"Post a veteran resource on social media",steps:["Open the WONPO Facebook page or Instagram","Tap Create Post","Write: 'Veterans: Did you know you can get free mental health support through the VA? Call the Veterans Crisis Line at 988, Press 1. You're not alone. 🇺🇸 #veteransupport #WONPO'","Add the WONPO logo or a flag image","Tap Post"]},
+{title:"Email a local vet organization",steps:["Google '[your area] veteran organizations'","Pick one you haven't contacted","Find their email on their website","Open Gmail, compose new email","Subject: 'Partnership Opportunity — WONPO'","Body: 'Hi, I'm Tyson Bruce, VP of WONPO. We're a nonprofit focused on veteran suicide prevention. I'd love to explore how we can support each other. Would you be open to a quick call this week? — Tyson'","Send it"]},
+{title:"Update the WONPO website",steps:["Open browser, go to WONPO website","Read every page — Home, About, Contact","Fix any outdated info","Make sure the mission statement is clear","Test the contact form","Save changes"]},
+{title:"Plan next community event",steps:["Open Google Docs","Create: 'WONPO [Month] Event Plan'","Write: Event type, Date, 3 possible venues, Expected attendees, Budget needed, Who to invite","Fill in each section","Share the doc with your WONPO team"]},
+{title:"Draft a grant section",steps:["Google 'small grants for veteran nonprofits 2026'","Find one WONPO qualifies for","Open the application","Start with 'Organization Description'","Write 2-3 paragraphs about WONPO's mission and who you serve","Save — finish the rest tomorrow"]},
+],
+"Side project":[
+{title:"Fix one bug in Milio",steps:["Open your code editor","Open the Milio project","Look at your issue list or bug notes","Pick the FIRST bug — not the hardest, the first one","Read the error message or reproduce the bug","Fix it","Test it","Commit: 'fix: [what you fixed]'"]},
+{title:"Add one feature",steps:["Open your code editor","Open whichever project you've been working on","Look at your feature list or TODO comments","Pick the smallest, easiest feature","Write the code","Test it","Commit: 'feat: [what you added]'","Stop. One feature. Done."]},
+{title:"Watch one tutorial",steps:["Open YouTube","Search for a tutorial on whatever tech you want to learn","Pick one under 20 minutes","Watch the whole thing","Pause and code along when they show code","When it's done, close YouTube. No rabbit holes."]},
+{title:"Write next steps for a project",steps:["Open Google Docs or notes app","Pick one project","Write 'NEXT 5 THINGS TO DO' at the top","List the next 5 specific things","Be specific — not 'improve UI' but 'change home screen button color to blue'","Save it. Tomorrow do #1."]},
+{title:"Test an app on your phone",steps:["Open the app you've been building on your phone","Use every screen and every button","When something breaks, open your notes app","Write exactly: what you tapped, what went wrong","Do this for 10 minutes","Save the notes — those are tomorrow's bug fixes"]},
+],
+};
+
+const PANICS=[
+"Step 1: Put your shoes on.\nStep 2: Walk to your car.\nStep 3: Start the car.\nStep 4: Drive to Walmart.\nStep 5: Accept ONE Spark delivery.\nThat's it. Just one.",
+"Step 1: Stand up.\nStep 2: Walk to your bathroom.\nStep 3: Turn on the shower.\nStep 4: Get in.\nDon't think. Just stand in the water.",
+"Step 1: Pick up your phone.\nStep 2: Open Spotify or YouTube.\nStep 3: Play a song you like LOUD.\nStep 4: Sit there for the whole song.",
+"Step 1: Open your messages.\nStep 2: Text anyone.\nStep 3: Type 'what's up'\nStep 4: Send it.\nDone.",
+"Step 1: Put your shoes on.\nStep 2: Walk outside.\nStep 3: Stand there for 60 seconds.\nStep 4: Breathe.\nStep 5: Decide from there.",
+"Step 1: Look at the floor.\nStep 2: Pick up ONE thing.\nStep 3: Put it where it goes.\nStep 4: Pick up one more.\nTwo things. Done.",
+"Step 1: Go to your kitchen.\nStep 2: Get a glass of water.\nStep 3: Drink the whole thing.\nStep 4: Refill it.\nYour brain works better hydrated.",
+"Step 1: Open the Spark app.\nStep 2: Accept the first order.\nStep 3: Don't think about the rest of the day.\nJust this one delivery.",
+"Step 1: Grab your keys.\nStep 2: Get in your car.\nStep 3: Drive. No destination.\nStep 4: Come back in 15 minutes.\nMovement beats thinking.",
+];
+
+const MOODS=[{emoji:"😤",label:"Rough",val:1},{emoji:"😕",label:"Meh",val:2},{emoji:"😐",label:"Okay",val:3},{emoji:"🙂",label:"Good",val:4},{emoji:"🔥",label:"Great",val:5}];
+
+const BA={morning:"#e2c044",spark:"#4ade80",gym:"#f97316",golf:"#38bdf8",lunch:"#a78bfa",evening:"#e2c044",chore:"#fb923c",business:"#a78bfa",free:"#22d3ee","wind-down":"#64748b",setup:"#f472b6"};
+
+// Helpers
+const doy=()=>{const n=new Date(),s=new Date(n.getFullYear(),0,0);return Math.floor((n-s)/864e5)};
+const dowN=()=>new Date().getDay();
+const dkF=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const ftF=()=>new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+
+function getChores(){const d=doy(),i1=d%CHORES.length,i2=(d+5)%CHORES.length;const c=[CHORES[i1]];if(i1!==i2)c.push(CHORES[i2]);return c}
+
+function getBT(name){const a=BIZ[name];if(!a)return[];const d=doy(),s=d+name.length;const p=[],ix=[...new Set([s%a.length,(s+3)%a.length,(s+7)%a.length])];ix.forEach(i=>p.push(a[i]));while(p.length<3){const n=a[(s+p.length*4)%a.length];if(!p.includes(n))p.push(n);else p.push(a[(s+p.length*5+1)%a.length])}return p.slice(0,3)}
+
+// Storage
+function ld(){try{const d=localStorage.getItem("routine");return d?JSON.parse(d):null}catch{return null}}
+function sv(d){try{localStorage.setItem("routine",JSON.stringify(d))}catch{}}
+
+// Build tasks
+function buildT(w,m,ch,otD){
+const t=[
+{id:"mood-am",label:"How are you feeling?",sub:"Tap one. Be honest.",time:"6:00 AM",block:"morning",type:"mood"},
+{id:"wake",label:"Wake up",sub:"Feet on the floor. That's all.",time:"6:00 AM",block:"morning"},
+{id:"shower",label:"Get in the shower",sub:"Walk to the bathroom. Turn on the water. Get in.",time:"6:05 AM",block:"morning"},
+{id:"teeth",label:"Brush your teeth",sub:"Grab toothbrush. Paste. Brush 2 min. Spit. Rinse.",time:"6:15 AM",block:"morning"},
+{id:"dress",label:"Put on the clothes you laid out",sub:"They're right there. Put them on.",time:"6:20 AM",block:"morning"},
+{id:"leave",label:"Walk out the front door",sub:"Keys. Wallet. Phone. Lock the door. Go to your car.",time:"6:30 AM",block:"spark"},
+{id:"spark1",label:"Spark until 8:30",sub:"Open Spark app. Accept orders. Drive. Deliver. Repeat.",time:"6:30 – 8:30",block:"spark",type:"earnings"},
+{id:"gym",label:"Go to the gym",sub:"Drive to the gym. Go inside. Do your workout. Leave by 9:30.",time:"8:30 AM",block:"gym"},
+];
+if(w==="good"){
+t.push({id:"golf",label:"Go play golf",sub:"Drive to the course. Check in. Play. Enjoy it.",time:"10:00 AM",block:"golf"});
+t.push({id:"golf-done",label:"Done golfing — go eat",sub:"Get: "+m.lunch,time:"12:30 PM",block:"golf"});
+}else{
+t.push({id:"spark-mid",label:"Keep Sparking or run errands",sub:"Open Spark. Accept orders. Run errands between deliveries.",time:"10:00 – 12:30",block:"spark",type:"earnings"});
+t.push({id:"lunch-brk",label:"Stop and eat",sub:"Get: "+m.lunch,time:"12:30 PM",block:"lunch"});
+}
+t.push({id:"eat-lunch",label:"Eat lunch",sub:m.lunch,time:"1:00 PM",block:"lunch"});
+t.push({id:"spark2",label:"Spark until 5:00",sub:"Open Spark. Accept orders. Last push.",time:"1:30 – 5:00",block:"spark",type:"earnings"});
+t.push({id:"home",label:"Drive home",sub:"Get in the car. Drive home. Go inside.",time:"5:00 PM",block:"evening"});
+t.push({id:"dinner",label:"Make dinner and eat",sub:m.dinner,time:"5:30 PM",block:"evening"});
+const pend=DEF_OT.filter(o=>!otD[o.id]);
+pend.slice(0,2).forEach(o=>{t.push({id:o.id,label:o.label,sub:o.steps.length+" steps — I'll walk you through each one.",time:"6:00 PM",block:"setup",type:"onetime",steps:o.steps})});
+ch.forEach((c,i)=>{t.push({id:"chore-"+i,label:c.label,sub:c.steps.length+" steps — I'll walk you through it.",time:"6:15 PM",block:"chore",type:"chore",steps:c.steps})});
+t.push({id:"business",label:"Work on ONE business",sub:"Pick one. I'll walk you through every step.",time:"7:00 PM",block:"business",type:"business"});
+t.push({id:"me-time",label:"Me time starts now",sub:"No work. No guilt. Watch TV, play games, scroll your phone.",time:"8:30 PM",block:"free"});
+t.push({id:"note",label:"Write a note to future you",sub:"One sentence about today.",time:"9:15 PM",block:"wind-down",type:"note"});
+t.push({id:"clothes",label:"Lay out tomorrow's clothes",sub:"Go to your closet. Pull out: shirt, pants, socks, underwear. Lay them on your dresser.",time:"9:30 PM",block:"wind-down"});
+t.push({id:"meds",label:"Take your sleep meds",sub:"Go get them. Put them in your hand. Take them with water. Now.",time:"9:45 PM",block:"wind-down"});
+t.push({id:"mood-pm",label:"How do you feel now?",sub:"End of day. Tap one.",time:"9:50 PM",block:"wind-down",type:"mood"});
+t.push({id:"bed",label:"Get in bed. Phone down.",sub:"Plug phone in across the room. Close your eyes.",time:"10:00 PM",block:"wind-down"});
+return t;
+}
+
+function App(){
+const[loaded,setLoaded]=useState(false);
+const[weather,setWeather]=useState("good");
+const[wTemp,setWTemp]=useState(null);
+const[idx,setIdx]=useState(0);
+const[done,setDone]=useState({});
+const[scr,setScr]=useState("task");
+const[clock,setClock]=useState(ftF());
+const[hist,setHist]=useState([]);
+const[biz2,setBiz2]=useState(null);
+const[bizTasks,setBizTasks]=useState([]);
+const[bizIdx,setBizIdx]=useState(0);
+const[bizSIdx,setBizSIdx]=useState(0);
+const[stepList,setStepList]=useState([]);
+const[stepIdx,setStepIdx]=useState(0);
+const[stepTId,setStepTId]=useState(null);
+const[bills,setBills]=useState(DEF_BILLS);
+const[wGoal,setWGoal]=useState(800);
+const[eToday,setEToday]=useState(0);
+const[eWeek,setEWeek]=useState(0);
+const[eInput,setEInput]=useState("");
+const[streak,setStreak]=useState(0);
+const[moodAM,setMoodAM]=useState(null);
+const[moodPM,setMoodPM]=useState(null);
+const[moodW,setMoodW]=useState(null);
+const[noteText,setNoteText]=useState("");
+const[notes,setNotes]=useState([]);
+const[otDone,setOtDone]=useState({});
+const[groC,setGroC]=useState({});
+const[weekLog,setWeekLog]=useState({});
+const[panicT,setPanicT]=useState("");
+const[eBill,setEBill]=useState(null);
+const[eN,setEN]=useState("");
+const[eA,setEA]=useState("");
+const[eD,setED]=useState("");
+const[gIn,setGIn]=useState("");
+const[swY,setSwY]=useState(null);
+
+useEffect(()=>{const i=setInterval(()=>setClock(ftF()),30000);return()=>clearInterval(i)},[]);
+
+useEffect(()=>{
+fetch("https://api.open-meteo.com/v1/forecast?latitude=38.3142&longitude=-88.9031&current_weather=true&temperature_unit=fahrenheit")
+.then(r=>r.json()).then(d=>{if(d?.current_weather){setWTemp(Math.round(d.current_weather.temperature));const c=d.current_weather.weathercode;const rain=(c>=51&&c<=67)||(c>=71&&c<=77)||c>=80;setWeather(rain||d.current_weather.temperature<45?"bad":"good")}}).catch(()=>{});
+},[]);
+
+useEffect(()=>{
+const d=ld();
+if(d){
+if(d.bills)setBills(d.bills);if(d.wGoal)setWGoal(d.wGoal);if(d.streak)setStreak(d.streak);
+if(d.notes)setNotes(d.notes);if(d.otDone)setOtDone(d.otDone);if(d.weekLog)setWeekLog(d.weekLog);
+if(d.lastDay===dkF()){
+if(d.done)setDone(d.done);if(d.idx!=null)setIdx(d.idx);if(d.eToday)setEToday(d.eToday);
+if(d.eWeek)setEWeek(d.eWeek);if(d.moodAM)setMoodAM(d.moodAM);if(d.moodPM)setMoodPM(d.moodPM);
+if(d.groC)setGroC(d.groC);
+}else{const l=d.lastDay?new Date(d.lastDay):null;const n=new Date();const sw=l&&(n-l)<7*864e5&&l.getDay()<=n.getDay();if(sw&&d.eWeek)setEWeek(d.eWeek)}
+}
+setLoaded(true);
+},[]);
+
+const persist=useCallback(()=>{if(!loaded)return;sv({bills,wGoal,streak,notes,otDone,weekLog,lastDay:dkF(),done,idx,eToday,eWeek,moodAM,moodPM,groC})},[bills,wGoal,streak,notes,otDone,weekLog,done,idx,eToday,eWeek,moodAM,moodPM,groC,loaded]);
+useEffect(()=>{persist()},[persist]);
+
+const meals=MEALS[dowN()],chores=getChores(),tasks=buildT(weather,meals,chores,otDone);
+const now=new Date(),dayName=now.toLocaleDateString("en-US",{weekday:"long"}),dateStr=now.toLocaleDateString("en-US",{month:"long",day:"numeric"});
+const task=tasks[idx],accent=task?(BA[task.block]||"#e2c044"):"#e2c044";
+const progress=Math.round((Object.keys(done).length/tasks.length)*100);
+
+function advance(id){setHist(p=>[...p,{idx,done:{...done}}]);setDone(p=>({...p,[id]:true}));if(idx<tasks.length-1)setIdx(idx+1);else{setStreak(s=>s+1);setWeekLog(p=>({...p,[dkF()]:true}));setScr("done")}}
+function markDone(){if(!task)return;if(task.type==="business"&&!biz2){setScr("bp");return}if(task.type==="mood"){setMoodW(task.id==="mood-am"?"am":"pm");setScr("mood");return}if(task.type==="earnings"){setScr("earn");return}if(task.type==="note"){setScr("note");return}if(task.type==="chore"||task.type==="onetime"){setStepList(task.steps);setStepIdx(0);setStepTId(task.id);setScr(task.type==="chore"?"csteps":"otsteps");return}advance(task.id)}
+function skip(){if(!task)return;setHist(p=>[...p,{idx,done:{...done}}]);if(idx<tasks.length-1)setIdx(idx+1);else{setWeekLog(p=>({...p,[dkF()]:"partial"}));setScr("done")}}
+function undo(){if(!hist.length)return;const p=hist[hist.length-1];setIdx(p.idx);setDone(p.done);setHist(h=>h.slice(0,-1));setScr("task")}
+function stepNext(){if(stepIdx<stepList.length-1)setStepIdx(stepIdx+1);else{if(scr==="otsteps")setOtDone(p=>({...p,[stepTId]:true}));setScr("task");advance(stepTId)}}
+function selectBiz(n){setBiz2(n);setBizTasks(getBT(n));setBizIdx(0);setBizSIdx(0);setScr("bsteps")}
+function bizStepN(){const ct=bizTasks[bizIdx];if(bizSIdx<ct.steps.length-1)setBizSIdx(bizSIdx+1);else{if(bizIdx+1<bizTasks.length){setBizIdx(bizIdx+1);setBizSIdx(0)}else{setScr("task");advance("business")}}}
+function bizSkip(){if(bizIdx+1<bizTasks.length){setBizIdx(bizIdx+1);setBizSIdx(0)}else{setScr("task");advance("business")}}
+function submitMood(v){if(moodW==="am")setMoodAM(v);else setMoodPM(v);setScr("task");advance(moodW==="am"?"mood-am":"mood-pm")}
+function submitEarn(){const a=parseFloat(eInput)||0;setEToday(p=>p+a);setEWeek(p=>p+a);setEInput("");setScr("task");advance(tasks[idx].id)}
+function submitNote(){if(noteText.trim())setNotes(p=>[{date:dateStr,text:noteText.trim()},...p.slice(0,49)]);setNoteText("");setScr("task");advance("note")}
+function resetDay(){setIdx(0);setDone({});setBiz2(null);setBizTasks([]);setBizIdx(0);setBizSIdx(0);setGroC({});setScr("task");setEToday(0);setMoodAM(null);setMoodPM(null);setNoteText("");setHist([])}
+function saveBill(){setBills(p=>p.map(b=>b.id===eBill.id?{...b,name:eN||b.name,amount:parseFloat(eA)||b.amount,dueDay:parseInt(eD)||b.dueDay}:b));setScr("bills")}
+
+function tsS(ev){setSwY(ev.touches[0].clientY)}
+function tsE(ev,fn){if(swY!==null&&swY-ev.changedTouches[0].clientY>60&&fn)fn();setSwY(null)}
+
+// Styles
+const C={ctn:{minHeight:"100vh",height:"100vh",background:"#0f0f1a",color:"#e2e8f0",fontFamily:"'JetBrains Mono',monospace",display:"flex",flexDirection:"column",overflow:"auto"},
+fc:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"},
+lbl:{fontSize:"10px",letterSpacing:"3px",color:"#e2c044",textTransform:"uppercase",marginBottom:"4px"},
+btn:(bg)=>({padding:"14px",background:bg||"linear-gradient(135deg,#e2c044,#f59e0b)",border:"none",borderRadius:"12px",color:"#0f0f1a",fontSize:"14px",fontWeight:"700",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"}),
+sec:{padding:"10px 20px",background:"transparent",border:"1px solid rgba(100,116,139,0.3)",borderRadius:"10px",color:"#64748b",fontSize:"13px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
+pill:{padding:"6px 8px",background:"#1a1a2e",border:"1px solid rgba(100,116,139,0.2)",borderRadius:"6px",fontSize:"13px",cursor:"pointer",lineHeight:"1"},
+back:{padding:"8px 12px",background:"#1a1a2e",border:"1px solid rgba(100,116,139,0.3)",borderRadius:"8px",color:"#94a3b8",fontSize:"12px",cursor:"pointer",fontFamily:"inherit"},
+inp:{width:"100%",padding:"12px",background:"#0f0f1a",border:"1px solid rgba(100,116,139,0.3)",borderRadius:"8px",color:"#e2e8f0",fontSize:"14px",fontFamily:"inherit",outline:"none",marginBottom:"12px",boxSizing:"border-box"},
+};
+
+// Week dots
+function WD(){const days=["S","M","T","W","T","F","S"],today=dowN();
+return e("div",{style:{display:"flex",gap:"6px",justifyContent:"center",margin:"6px 0"}},
+days.map((d,i)=>{const dt=new Date();dt.setDate(dt.getDate()-(today-i));const k=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");const s=weekLog[k],it=i===today;
+return e("div",{key:i,style:{width:"26px",height:"26px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:"700",
+background:s===true?"rgba(74,222,128,0.2)":s==="partial"?"rgba(226,192,68,0.2)":it?"#1a1a2e":"transparent",
+border:it?"2px solid #e2c044":s?"2px solid "+(s===true?"#4ade80":"#e2c044"):"1px solid #2a2a4a",
+color:s===true?"#4ade80":s==="partial"?"#e2c044":it?"#fff":"#64748b"}},s===true?"✓":d)}))}
+
+// Nav
+function Nav2(){return e("div",{style:{display:"flex",gap:"4px",flexWrap:"wrap"}},
+e("button",{onClick:()=>setScr("meals"),style:C.pill},"🍽️"),
+e("button",{onClick:()=>setScr("grocery"),style:C.pill},"🛒"),
+e("button",{onClick:()=>setScr("bills"),style:C.pill},"💰"),
+e("button",{onClick:()=>setScr("pnotes"),style:C.pill},"📝"),
+e("button",{onClick:()=>setScr("settings"),style:C.pill},"⚙️"),
+e("button",{onClick:()=>{setPanicT(PANICS[Math.floor(Math.random()*PANICS.length)]);setScr("panic")},style:{...C.pill,background:"#7f1d1d",border:"1px solid rgba(248,113,113,0.3)"}},"🆘")
+)}
+
+// Step screen
+function StepScr(props){const{steps,si,onNext,onSkip,color,label}=props;const step=steps[si];const pct=Math.round(si/steps.length*100);
+return e("div",{style:C.ctn,onTouchStart:tsS,onTouchEnd:ev=>tsE(ev,onNext)},
+e("div",{style:{padding:"16px 20px 10px"}},
+e("div",{style:{fontSize:"11px",letterSpacing:"2px",color}},label+" — STEP "+(si+1)+" OF "+steps.length),
+e("div",{style:{marginTop:"6px",height:"4px",background:"#2a2a4a",borderRadius:"2px",overflow:"hidden"}},
+e("div",{style:{width:pct+"%",height:"100%",background:color,borderRadius:"2px",transition:"width 0.3s"}}))),
+e("div",{style:{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:"30px 28px",textAlign:"center"}},
+e("div",{style:{fontSize:"11px",letterSpacing:"3px",color,marginBottom:"14px"}},"DO THIS NOW"),
+e("div",{style:{fontSize:"22px",fontWeight:"800",color:"#fff",lineHeight:"1.3",maxWidth:"340px"}},step),
+si<steps.length-1?e("div",{style:{fontSize:"13px",color:"#64748b",marginTop:"14px"}},"Then I'll tell you the next step."):e("div",{style:{fontSize:"13px",color:"#4ade80",marginTop:"14px"}},"Last step — you're done after this.")),
+e("div",{style:{padding:"0 20px 28px"}},
+e("button",{onClick:onNext,style:{...C.btn("linear-gradient(135deg,"+color+","+color+"dd)"),marginBottom:"8px"}},si<steps.length-1?"DONE — NEXT STEP →":"DONE ✓"),
+onSkip&&e("button",{onClick:onSkip,style:C.sec},"Skip this task →"))
+)}
+
+if(!loaded)return e("div",{style:{...C.ctn,...C.fc}},e("div",{style:{color:"#64748b"}},"Loading..."));
+
+// DONE
+if(scr==="done")return e("div",{style:C.ctn},e("div",{style:{...C.fc,flexDirection:"column",gap:"14px"}},
+e("div",{style:{fontSize:"64px"}},"🏆"),
+e("div",{style:{fontSize:"26px",fontWeight:"800",color:"#4ade80"}},"DAY COMPLETE"),
+streak>0&&e("div",{style:{fontSize:"16px",color:"#e2c044"}},"🔥 "+streak+" day streak"),
+eToday>0&&e("div",{style:{fontSize:"16px",color:"#4ade80"}},"💵 $"+eToday.toFixed(0)+" earned today"),
+e("div",{style:{display:"flex",gap:"16px"}},moodAM&&e("span",null,"Morning: "+MOODS.find(m=>m.val===moodAM)?.emoji),moodPM&&e("span",null,"Tonight: "+MOODS.find(m=>m.val===moodPM)?.emoji)),
+e(WD),
+e("div",{style:{fontSize:"14px",color:"#94a3b8",textAlign:"center",maxWidth:"280px"}},"Every single thing. Done."),
+e("button",{onClick:resetDay,style:{...C.sec,marginTop:"12px",width:"auto",padding:"10px 24px"}},"Reset for tomorrow")));
+
+// MOOD
+if(scr==="mood")return e("div",{style:C.ctn},e("div",{style:{...C.fc,flexDirection:"column",gap:"20px"}},
+e("div",{style:C.lbl},moodW==="am"?"MORNING":"END OF DAY"),
+e("div",{style:{fontSize:"22px",fontWeight:"700",color:"#fff"}},"How are you feeling?"),
+e("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap",justifyContent:"center"}},
+MOODS.map(m=>e("div",{key:m.val,onClick:()=>submitMood(m.val),style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",padding:"14px 18px",background:"#1a1a2e",borderRadius:"14px",cursor:"pointer",border:"1px solid rgba(100,116,139,0.2)"}},
+e("span",{style:{fontSize:"28px"}},m.emoji),e("span",{style:{fontSize:"10px",color:"#94a3b8"}},m.label))))));
+
+// EARNINGS
+if(scr==="earn"){const pct=Math.min(100,Math.round(eWeek/wGoal*100));
+return e("div",{style:C.ctn},e("div",{style:{...C.fc,flexDirection:"column",gap:"14px",padding:"40px 28px"}},
+e("div",{style:C.lbl},"SPARK EARNINGS"),
+e("div",{style:{fontSize:"20px",fontWeight:"700",color:"#fff"}},"How much this shift?"),
+e("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
+e("span",{style:{fontSize:"26px",color:"#4ade80",fontWeight:"700"}},"$"),
+e("input",{type:"number",inputMode:"decimal",value:eInput,onChange:ev=>setEInput(ev.target.value),placeholder:"0",autoFocus:true,style:{width:"130px",padding:"12px",background:"#1a1a2e",border:"2px solid #4ade80",borderRadius:"12px",color:"#4ade80",fontSize:"26px",fontWeight:"700",fontFamily:"inherit",textAlign:"center",outline:"none"}})),
+e("div",{style:{width:"100%",maxWidth:"300px"}},
+e("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"12px",color:"#64748b",marginBottom:"4px"}},e("span",null,"Today: $"+eToday.toFixed(0)),e("span",null,"Week: $"+eWeek.toFixed(0)+" / $"+wGoal)),
+e("div",{style:{height:"8px",background:"#2a2a4a",borderRadius:"4px",overflow:"hidden"}},e("div",{style:{width:pct+"%",height:"100%",background:pct>=100?"#4ade80":"#22c55e",borderRadius:"4px"}}))),
+e("button",{onClick:submitEarn,style:C.btn("linear-gradient(135deg,#4ade80,#22c55e)")},"Log it →"),
+e("button",{onClick:()=>{setScr("task");advance(tasks[idx].id)},style:C.sec},"Skip")))}
+
+// NOTE
+if(scr==="note")return e("div",{style:C.ctn},e("div",{style:{...C.fc,flexDirection:"column",gap:"14px",padding:"40px 28px"}},
+e("div",{style:C.lbl},"NOTE TO FUTURE YOU"),
+e("div",{style:{fontSize:"18px",fontWeight:"700",color:"#fff",textAlign:"center"}},"One sentence about today."),
+e("textarea",{value:noteText,onChange:ev=>setNoteText(ev.target.value),placeholder:"Today I...",autoFocus:true,rows:3,style:{width:"100%",maxWidth:"320px",padding:"14px",background:"#1a1a2e",border:"1px solid rgba(226,192,68,0.3)",borderRadius:"12px",color:"#e2e8f0",fontSize:"14px",fontFamily:"inherit",resize:"none",outline:"none",boxSizing:"border-box"}}),
+e("button",{onClick:submitNote,style:C.btn()},noteText.trim()?"Save it →":"Skip →")));
+
+// PAST NOTES
+if(scr==="pnotes")return e("div",{style:C.ctn},e("div",{style:{padding:"24px"}},
+e("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:"20px"}},
+e("div",null,e("div",{style:C.lbl},"PAST NOTES"),e("div",{style:{fontSize:"18px",fontWeight:"700",color:"#fff"}},"From your good days.")),
+e("button",{onClick:()=>setScr("task"),style:C.back},"← Back")),
+notes.length===0?e("div",{style:{color:"#64748b"}},"No notes yet."):notes.map((n,i)=>
+e("div",{key:i,style:{padding:"14px",margin:"8px 0",background:"#1a1a2e",borderRadius:"12px",borderLeft:"3px solid #e2c044"}},
+e("div",{style:{fontSize:"11px",color:"#64748b",marginBottom:"4px"}},n.date),
+e("div",{style:{fontSize:"14px",color:"#e2e8f0"}},'"'+n.text+'"')))));
+
+// PANIC
+if(scr==="panic")return e("div",{style:{...C.ctn,background:"#1a0a0a"}},e("div",{style:{...C.fc,flexDirection:"column",gap:"20px",padding:"40px 24px"}},
+e("div",{style:{fontSize:"12px",letterSpacing:"3px",color:"#f87171"}},"JUST DO THIS"),
+e("div",{style:{fontSize:"18px",fontWeight:"800",color:"#fff",lineHeight:"1.6",textAlign:"left",maxWidth:"320px",padding:"24px",background:"#2a1a1a",borderRadius:"16px",border:"1px solid rgba(248,113,113,0.2)",whiteSpace:"pre-line"}},panicT),
+e("button",{onClick:()=>setPanicT(PANICS[Math.floor(Math.random()*PANICS.length)]),style:{...C.sec,borderColor:"rgba(248,113,113,0.3)",color:"#f87171"}},"Different one"),
+e("button",{onClick:()=>setScr("task"),style:C.sec},"← Back")));
+
+// BILLS
+if(scr==="bills"){const today=now.getDate(),total=bills.reduce((a,b)=>a+b.amount,0);
+return e("div",{style:C.ctn},e("div",{style:{padding:"24px"}},
+e("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:"16px"}},
+e("div",null,e("div",{style:C.lbl},"BILLS"),e("div",{style:{fontSize:"18px",fontWeight:"700",color:"#fff"}},"Monthly: $"+total)),
+e("button",{onClick:()=>setScr("task"),style:C.back},"← Back")),
+e("div",{style:{marginBottom:"16px"}},
+e("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"12px",color:"#64748b",marginBottom:"4px"}},e("span",null,"This week"),e("span",null,"$"+eWeek+" / $"+wGoal)),
+e("div",{style:{height:"10px",background:"#2a2a4a",borderRadius:"5px",overflow:"hidden"}},e("div",{style:{width:Math.min(100,Math.round(eWeek/wGoal*100))+"%",height:"100%",background:eWeek>=wGoal?"#4ade80":"#e2c044",borderRadius:"5px"}}))),
+bills.map(b=>{const d=b.dueDay>=today?b.dueDay-today:(30-today)+b.dueDay;const u=d<=5;
+return e("div",{key:b.id,onClick:()=>{setEBill(b);setEN(b.name);setEA(String(b.amount));setED(String(b.dueDay));setScr("eb")},
+style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 16px",margin:"6px 0",background:"#1a1a2e",borderRadius:"10px",border:u?"1px solid rgba(248,113,113,0.3)":"1px solid transparent",cursor:"pointer"}},
+e("div",null,e("div",{style:{fontSize:"14px",fontWeight:"600",color:"#e2e8f0"}},b.name),e("div",{style:{fontSize:"11px",color:u?"#f87171":"#64748b"}},"Due in "+d+" days — tap to edit")),
+e("div",{style:{fontSize:"16px",fontWeight:"700",color:u?"#f87171":"#e2c044"}},"$"+b.amount))}),
+e("button",{onClick:()=>{const id="b"+Date.now();setBills(p=>[...p,{id,name:"New Bill",amount:0,dueDay:1}]);setEBill({id});setEN("");setEA("");setED("");setScr("eb")},style:{...C.sec,margin:"12px 0",border:"1px dashed rgba(100,116,139,0.3)"}},"+ Add a bill")))}
+
+// EDIT BILL
+if(scr==="eb")return e("div",{style:C.ctn},e("div",{style:{padding:"40px 24px"}},
+e("div",{style:C.lbl},"EDIT BILL"),
+e("div",{style:{fontSize:"11px",color:"#64748b",marginBottom:"4px"}},"Name"),e("input",{value:eN,onChange:ev=>setEN(ev.target.value),style:C.inp}),
+e("div",{style:{fontSize:"11px",color:"#64748b",marginBottom:"4px"}},"Amount ($)"),e("input",{type:"number",inputMode:"decimal",value:eA,onChange:ev=>setEA(ev.target.value),style:C.inp}),
+e("div",{style:{fontSize:"11px",color:"#64748b",marginBottom:"4px"}},"Due day (1-31)"),e("input",{type:"number",inputMode:"numeric",value:eD,onChange:ev=>setED(ev.target.value),style:C.inp}),
+e("button",{onClick:saveBill,style:{...C.btn(),marginBottom:"8px"}},"Save"),
+e("button",{onClick:()=>{setBills(p=>p.filter(b=>b.id!==eBill.id));setScr("bills")},style:{...C.sec,color:"#f87171",borderColor:"rgba(248,113,113,0.3)",marginBottom:"8px"}},"Delete"),
+e("button",{onClick:()=>setScr("bills"),style:C.sec},"Cancel")));
+
+// SETTINGS
+if(scr==="settings")return e("div",{style:C.ctn},e("div",{style:{padding:"24px"}},
+e("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:"20px"}},
+e("div",null,e("div",{style:C.lbl},"SETTINGS"),e("div",{style:{fontSize:"18px",fontWeight:"700",color:"#fff"}},"Your routine")),
+e("button",{onClick:()=>setScr("task"),style:C.back},"← Back")),
+e("div",{style:{padding:"16px",background:"#1a1a2e",borderRadius:"12px",marginBottom:"12px"}},
+e("div",{style:{fontSize:"13px",fontWeight:"600",color:"#e2c044",marginBottom:"8px"}},"Weekly Spark Goal: $"+wGoal),
+e("div",{style:{display:"flex",gap:"8px"}},
+e("input",{type:"number",value:gIn,onChange:ev=>setGIn(ev.target.value),placeholder:"New goal",style:{...C.inp,margin:0,flex:1}}),
+e("button",{onClick:()=>{const g=parseInt(gIn);if(g>0)setWGoal(g);setGIn("")},style:{...C.btn(),width:"auto",padding:"10px 16px"}},"Set"))),
+e("div",{onClick:()=>setScr("bills"),style:{padding:"16px",background:"#1a1a2e",borderRadius:"12px",marginBottom:"12px",cursor:"pointer"}},
+e("div",{style:{fontSize:"13px",fontWeight:"600",color:"#e2c044"}},"Edit Bills →")),
+e("div",{style:{padding:"16px",background:"#1a1a2e",borderRadius:"12px",marginBottom:"12px"}},
+e("div",{style:{fontSize:"13px",fontWeight:"600",color:"#e2c044",marginBottom:"4px"}},"🔥 Streak: "+streak+" days"),e(WD)),
+e("button",{onClick:resetDay,style:{...C.sec,marginBottom:"12px"}},"Reset today"),
+e("div",{style:{padding:"16px",background:"#1a1a2e",borderRadius:"12px"}},
+e("div",{style:{fontSize:"13px",fontWeight:"600",color:"#38bdf8",marginBottom:"8px"}},"📱 Add to home screen"),
+e("div",{style:{fontSize:"12px",color:"#94a3b8",lineHeight:"1.6"}},
+e("strong",{style:{color:"#e2e8f0"}},"iPhone: "),e("span",null,"Tap Share (box w/ arrow) → 'Add to Home Screen'"),e("br"),
+e("strong",{style:{color:"#e2e8f0"}},"Android: "),e("span",null,"Tap ⋮ menu → 'Add to Home screen'")))));
+
+// MEALS
+if(scr==="meals")return e("div",{style:C.ctn},e("div",{style:{padding:"24px"}},
+e("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:"20px"}},
+e("div",null,e("div",{style:C.lbl},"MEALS"),e("div",{style:{fontSize:"18px",fontWeight:"700",color:"#fff"}},"Lunch & Dinner")),
+e("button",{onClick:()=>setScr("task"),style:C.back},"← Back")),
+["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].map((d,i)=>{const m=MEALS[i],t=i===dowN();
+return e("div",{key:d,style:{padding:"14px",margin:"6px 0",background:t?"#1e3a2f":"#1a1a2e",borderRadius:"12px",border:t?"1px solid #4ade80":"1px solid transparent"}},
+e("div",{style:{fontSize:"12px",fontWeight:"700",color:t?"#4ade80":"#e2c044",marginBottom:"6px"}},d+(t?" ← TODAY":"")),
+e("div",{style:{fontSize:"13px",color:"#94a3b8",marginBottom:"3px"}},e("span",{style:{color:"#64748b"}},"Lunch: "),m.lunch),
+e("div",{style:{fontSize:"13px",color:"#94a3b8"}},e("span",{style:{color:"#64748b"}},"Dinner: "),m.dinner))}),
+e("button",{onClick:()=>setScr("grocery"),style:{...C.btn("linear-gradient(135deg,#4ade80,#22c55e)"),marginTop:"12px"}},"🛒 Grocery List")));
+
+// GROCERY
+if(scr==="grocery"){const tot=GROCERY.reduce((a,c)=>a+c.items.reduce((b,i)=>b+i.price,0),0);
+const ck=Object.values(groC).filter(Boolean).length,ti=GROCERY.reduce((a,c)=>a+c.items.length,0);
+return e("div",{style:C.ctn},e("div",{style:{padding:"24px"}},
+e("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:"8px"}},
+e("div",null,e("div",{style:C.lbl},"GROCERY"),e("div",{style:{fontSize:"18px",fontWeight:"700",color:"#fff"}},"Weekly shop")),
+e("button",{onClick:()=>setScr("meals"),style:C.back},"← Meals")),
+e("div",{style:{fontSize:"13px",color:"#4ade80",marginBottom:"2px"}},"💰 ~$"+tot),
+e("div",{style:{fontSize:"12px",color:"#64748b",marginBottom:"16px"}},ck+"/"+ti+" items"),
+GROCERY.map(cat=>e("div",{key:cat.category,style:{marginBottom:"14px"}},
+e("div",{style:{fontSize:"13px",fontWeight:"700",color:"#e2c044",marginBottom:"6px"}},cat.category),
+cat.items.map(item=>{const k=cat.category+"-"+item.name,d=groC[k];
+return e("div",{key:k,onClick:()=>setGroC(p=>({...p,[k]:!p[k]})),style:{display:"flex",alignItems:"center",gap:"10px",padding:"10px 12px",margin:"3px 0",background:d?"#0f0f1a":"#1a1a2e",borderRadius:"8px",cursor:"pointer",opacity:d?0.4:1}},
+e("div",{style:{width:"20px",height:"20px",borderRadius:"4px",border:"2px solid "+(d?"#4ade80":"#64748b"),background:d?"rgba(74,222,128,0.2)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",flexShrink:0}},d?"✓":""),
+e("span",{style:{flex:1,fontSize:"13px",color:d?"#64748b":"#e2e8f0",textDecoration:d?"line-through":"none"}},item.name),
+e("span",{style:{fontSize:"11px",color:"#64748b"}},"~$"+item.price))}))),
+e("button",{onClick:()=>setScr("task"),style:{...C.btn(),marginTop:"12px"}},"← Back")))}
+
+// BIZ PICK
+if(scr==="bp")return e("div",{style:C.ctn},e("div",{style:{padding:"40px 24px"}},
+e("div",{style:C.lbl},"PICK ONE"),
+e("div",{style:{fontSize:"22px",fontWeight:"700",color:"#fff",marginBottom:"6px"}},"Which business tonight?"),
+e("div",{style:{fontSize:"14px",color:"#94a3b8",marginBottom:"28px"}},"Pick one. I'll walk you through every step."),
+Object.keys(BIZ).map(b=>e("div",{key:b,onClick:()=>selectBiz(b),style:{padding:"16px 18px",margin:"8px 0",background:"#1a1a2e",borderRadius:"12px",cursor:"pointer",border:"1px solid rgba(167,139,250,0.2)"}},
+e("div",{style:{fontSize:"15px",fontWeight:"600",color:"#e2e8f0"}},b),
+e("div",{style:{fontSize:"11px",color:"#64748b",marginTop:"3px"}},BIZ[b].length+" tasks with step-by-step instructions")))));
+
+// BIZ STEPS
+if(scr==="bsteps"&&bizTasks.length>0){const ct=bizTasks[bizIdx];
+return e(StepScr,{steps:ct.steps,si:bizSIdx,onNext:bizStepN,onSkip:bizSkip,color:"#a78bfa",label:biz2.toUpperCase()+" — \""+ct.title+"\" ("+(bizIdx+1)+"/"+bizTasks.length+")"})}
+
+// CHORE STEPS
+if(scr==="csteps")return e(StepScr,{steps:stepList,si:stepIdx,onNext:stepNext,onSkip:()=>{setScr("task");advance(stepTId)},color:"#fb923c",label:"CHORE"});
+
+// ONETIME STEPS
+if(scr==="otsteps")return e(StepScr,{steps:stepList,si:stepIdx,onNext:stepNext,onSkip:()=>{setOtDone(p=>({...p,[stepTId]:true}));setScr("task");advance(stepTId)},color:"#f472b6",label:"SETUP TASK"});
+
+// MAIN TASK
+return e("div",{style:C.ctn,onTouchStart:tsS,onTouchEnd:ev=>tsE(ev,markDone)},
+e("div",{style:{padding:"14px 20px 4px",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+e("div",null,
+e("div",{style:{fontSize:"11px",letterSpacing:"2px",color:"#64748b"}},dayName.toUpperCase()),
+e("div",{style:{display:"flex",alignItems:"baseline",gap:"8px"}},e("span",{style:{fontSize:"15px",fontWeight:"600",color:"#fff"}},dateStr),e("span",{style:{fontSize:"11px",color:"#64748b"}},clock)),
+streak>0&&e("div",{style:{fontSize:"10px",color:"#e2c044"}},"🔥 "+streak+" day streak")),
+e(Nav2)),
+e(WD),
+e("div",{style:{padding:"0 20px 4px"}},
+e("div",{style:{height:"4px",background:"#2a2a4a",borderRadius:"2px",overflow:"hidden"}},e("div",{style:{width:progress+"%",height:"100%",background:accent,borderRadius:"2px",transition:"width 0.5s"}})),
+e("div",{style:{display:"flex",justifyContent:"space-between",marginTop:"3px"}},e("span",{style:{fontSize:"10px",color:"#64748b"}},"Step "+(idx+1)+"/"+tasks.length),eToday>0&&e("span",{style:{fontSize:"10px",color:"#4ade80"}},"$"+eToday.toFixed(0)+" today"),e("span",{style:{fontSize:"10px",color:accent}},progress+"%"))),
+e("div",{style:{padding:"0 20px 4px"}},
+e("button",{onClick:()=>setWeather(weather==="good"?"bad":"good"),style:{width:"100%",padding:"8px",background:weather==="good"?"#1e3a2f":"#3a1e2f",border:"1px solid "+(weather==="good"?"rgba(74,222,128,0.3)":"rgba(248,113,113,0.3)"),borderRadius:"8px",color:weather==="good"?"#4ade80":"#f87171",fontSize:"11px",fontWeight:"600",cursor:"pointer",fontFamily:"inherit"}},
+weather==="good"?"☀️ Golf ON"+(wTemp?" — "+wTemp+"°F":""):"🌧️ Spark day"+(wTemp?" — "+wTemp+"°F":""))),
+e("div",{style:{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:"20px 28px",textAlign:"center"}},
+e("div",{style:{fontSize:"11px",letterSpacing:"3px",color:accent,textTransform:"uppercase",marginBottom:"10px"}},task.time),
+e("div",{style:{fontSize:"28px",fontWeight:"800",color:"#fff",lineHeight:"1.2",marginBottom:"12px"}},task.label),
+e("div",{style:{fontSize:"14px",color:"#94a3b8",lineHeight:"1.5",maxWidth:"300px"}},task.sub),
+task.type==="onetime"&&e("div",{style:{fontSize:"11px",color:"#f472b6",marginTop:"6px"}},"⚡ One-time — I'll walk you through it"),
+task.type==="chore"&&e("div",{style:{fontSize:"11px",color:"#fb923c",marginTop:"6px"}},"I'll walk you through each step")),
+e("div",{style:{padding:"0 20px 20px"}},
+e("button",{onClick:markDone,style:{...C.btn("linear-gradient(135deg,"+accent+","+accent+"dd)"),marginBottom:"8px"}},(task.type==="chore"||task.type==="onetime")?"START →":"DONE ✓"),
+e("div",{style:{display:"flex",gap:"8px"}},
+e("button",{onClick:skip,style:C.sec},"Skip →"),
+hist.length>0&&e("button",{onClick:undo,style:{...C.sec,color:"#e2c044",borderColor:"rgba(226,192,68,0.2)"}},"← Undo"))))
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(e(App));
+</script>
+</body>
+</html>
